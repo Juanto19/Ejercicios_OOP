@@ -1,138 +1,127 @@
-#Importo librerias
-
 import random
-import logging
 
-
-
-# Clase que crea unidades
-
+# Clase base para unidades
 class Unidad:
     def __init__(self, nombre, salud, ataque, defensa):
         self.nombre = nombre
         self.salud = salud
         self.ataque = ataque
         self.defensa = defensa
-    
+
     def esta_vivo(self):
         return self.salud > 0
-    
 
-
-#UNIDADES
-
-#Clase Arquero
+# Clases para tipos específicos de unidades
 class Arquero(Unidad):
     def __init__(self):
-        super().__init__(nombre = 'Arquero', salud = 100, ataque = 10, defensa = 5)
+        super().__init__(nombre="Arquero", salud=100, ataque=10, defensa=5)
 
 class Infanteria(Unidad):
     def __init__(self):
-        super().__init__(nombre = 'Infanteria', salud=150, ataque = 15, defensa=10)
-
+        super().__init__(nombre="Infantería", salud=150, ataque=15, defensa=10)
 
 class Caballeria(Unidad):
     def __init__(self):
-        super().__init__(nombre= 'Caballeria', salud=200, ataque=20, defensa=15)
+        super().__init__(nombre="Caballería", salud=200, ataque=20, defensa=15)
 
-
-
-
-
-#EJERCITO
-
+# Clase para el ejército
 class Ejercito:
     def __init__(self, nombre):
         self.nombre = nombre
         self.unidades = []
 
-    def reclutar_unidades(self, unidad):
+    def reclutar_unidad(self, unidad):
         self.unidades.append(unidad)
 
     def tiene_unidades(self):
-        return any([unidad.esta_vivo() for unidad in self.unidades])
+        return any(unidad.esta_vivo() for unidad in self.unidades)
 
+# Funciones de combate y batalla
+def combate(unidad1, unidad2, archivo):
+    evento = f"{unidad1.nombre} ({unidad1.salud} HP) vs " \
+             f"{unidad2.nombre} ({unidad2.salud} HP)\n"
+    archivo.write(evento)
+    print(evento.strip())
 
-
-
-
-#Funciones de combate
-
-
-def combate(unidad1, unidad2):
-    print(f'{unidad1.nombre} ({unidad1.salud} HP) vd {unidad2.nombre} ({unidad2.salud} HP)')
-    #unidad1 ataca a unidad2
+    # Unidad 1 ataca a unidad 2
     daño1 = max(0, unidad1.ataque - unidad2.defensa)
     unidad2.salud -= daño1
-    print(f'{unidad1.nombre} hace {daño1} a {unidad2.nombre}')
+    evento = f"{unidad1.nombre} hace {daño1} de daño a {unidad2.nombre}\n"
+    archivo.write(evento)
+    print(evento.strip())
 
     if unidad2.esta_vivo():
+        # Unidad 2 ataca a unidad 1
         daño2 = max(0, unidad2.ataque - unidad1.defensa)
         unidad1.salud -= daño2
-        print(f'{unidad2.nombre} hace {daño2} a {unidad1.nombre}')
-
+        evento = f"{unidad2.nombre} hace {daño2} de daño a {unidad1.nombre}\n"
+        archivo.write(evento)
+        print(evento.strip())
 
         if not unidad1.esta_vivo():
-            print(f'{unidad1.nombre} ha muerto')
-    
+            evento = f"{unidad1.nombre} ha muerto\n"
+            archivo.write(evento)
+            print(evento.strip())
     else:
-        print(f'{unidad2.nombre} ha muerto')
+        evento = f"{unidad2.nombre} ha muerto\n"
+        archivo.write(evento)
+        print(evento.strip())
 
-
-def batalla(ejercito1, ejercito2):
+def batalla(ejercito1, ejercito2, archivo):
     ronda = 1
-
     while ejercito1.tiene_unidades() and ejercito2.tiene_unidades():
-        print(f'Ronda {ronda}')
+        evento = f"Ronda {ronda}\n"
+        archivo.write(evento)
+        print(evento.strip())
 
-        unidad1 = random.choice([unidad for unidad in ejercito1.unidades if unidad.esta_vivo()])
-        unidad2 = random.choice([unidad for unidad in ejercito2.unidades if unidad.esta_vivo()])
-        combate(unidad1, unidad2)
-        ronda +=1
-    
+        unidad1 = random.choice(
+            [u for u in ejercito1.unidades if u.esta_vivo()])
+        unidad2 = random.choice(
+            [u for u in ejercito2.unidades if u.esta_vivo()])
+
+        combate(unidad1, unidad2, archivo)
+        ronda += 1
+
     if ejercito1.tiene_unidades():
-        print(f'{ejercito1.nombre} ha ganado')
-
+        resultado = f"{ejercito1.nombre} ha ganado\n"
     else:
-        print(f'{ejercito2.nombre} ha ganado')
+        resultado = f"{ejercito2.nombre} ha ganado\n"
+    archivo.write(resultado)
+    print(resultado.strip())
 
+# Código principal
+def main():
+    # Crear ejércitos
+    ejercito1 = Ejercito("Ejército Rojo")
+    ejercito2 = Ejercito("Ejército Azul")
 
-#CREAR EJERCITOS Y RECLUTAR UNIDADES
+    # Reclutar unidades
+    for _ in range(30):
+        ejercito1.reclutar_unidad(Arquero())
+        ejercito2.reclutar_unidad(Arquero())
+    for _ in range(30):
+        ejercito1.reclutar_unidad(Infanteria())
+        ejercito2.reclutar_unidad(Infanteria())
+    for _ in range(30):
+        ejercito1.reclutar_unidad(Caballeria())
+        ejercito2.reclutar_unidad(Caballeria())
 
-ejercito1 = Ejercito('Ejercito Rojo')
-ejercito2 = Ejercito('Ejercito Azul')
+    # Iniciar batalla y guardar resultados
+    with open("resultados.txt", "w") as archivo:
+        archivo.write("Resultados de la batalla\n")
+        batalla(ejercito1, ejercito2, archivo)
 
+        # Guardar estado final de los ejércitos
+        archivo.write("\nEstado final de los ejércitos:\n")
+        archivo.write(f"{ejercito1.nombre}:\n")
+        for unidad in ejercito1.unidades:
+            estado = f"{unidad.nombre} ({unidad.salud} HP)\n"
+            archivo.write(estado)
+        archivo.write("\n")
+        archivo.write(f"{ejercito2.nombre}:\n")
+        for unidad in ejercito2.unidades:
+            estado = f"{unidad.nombre} ({unidad.salud} HP)\n"
+            archivo.write(estado)
 
-#reclutar unidades
-for _ in range(int(input('Numero de Arqueros para el ejercito Rojo'))):
-    ejercito1.reclutar_unidad(Arquero())
-for _ in range(int(input('Numero de Infanteria para el ejercito Rojo'))):    
-    ejercito1.reclutar_unidad(Infanteria())
-for _ in range(int(input('Numero de Caballeria para el ejercito Rojo'))):    
-    ejercito1.reclutar_unidad(Caballeria())
-
-for _ in range(int(input('Numero de Arqueros para el ejercito Azul'))):
-    ejercito2.reclutar_unidad(Arquero())
-for _ in range(int(input('Numero de Infanteria para el ejercito Azul'))):    
-    ejercito2.reclutar_unidad(Infanteria())
-for _ in range(int(input('Numero de Caballeria para el ejercito Azul'))):
-    ejercito2.reclutar_unidad(Caballeria())
-
-
-
-# INICIAR BATALLA
-
-
-
-#guardar en un log el resultado de la batalla
-logging.basicConfig(filename='batalla.log', level=logging.DEBUG)
-logging.info('Batalla iniciada')
-logging.info('Ejercito 1: ')
-for unidad in ejercito1.unidades:
-    logging.info(f"{unidad.nombre} ({unidad.salud} HP)")
-logging.info('Ejercito 2: ')
-for unidad in ejercito2.unidades:
-    logging.info(f"{unidad.nombre} ({unidad.salud} HP)")
-
-
-batalla(ejercito1, ejercito2)
+if __name__ == "__main__":
+    main()
