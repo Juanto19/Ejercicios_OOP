@@ -1,2 +1,3 @@
-# Ejercicios_Python
- Ejercicios de introducción a Python
+# Ejercicios Python
+
+## Ejercicios de introduccion a Python
